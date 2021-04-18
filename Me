@@ -1,0 +1,136 @@
+using System;
+using System.Collections.Generic;
+
+
+using System.Threading;
+using System.Threading.Tasks;
+namespace TikTok
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Me me = new Me();
+            me.StartWork();
+            Console.ReadKey();
+            me.StopWork();
+            Console.ReadKey();
+        }
+    }
+    /// <summary>
+    /// Я
+    /// </summary>
+    class Me
+    {
+        /// <summary>
+        /// Мои Хобби
+        /// </summary>
+        public IEnumerable<Hobby> Hobbies { get; set; }
+        /// <summary>
+        /// Мои личные качества
+        /// </summary>
+        public IEnumerable<PersonalQuality> PersonalQualities { get; set; }
+        /// <summary>
+        /// Мой репозиторий на гитхаб
+        /// </summary>
+        public string Git { get { return "https://github.com/MagMagomed?tab=repositories"; } }
+        /// <summary>
+        /// Задача, которую я буду выполнять
+        /// </summary>
+        private Task Work { get; set; }
+        /// <summary>
+        /// Метод, который будет добавлен в задачу, которую я буду выполняться
+        /// </summary>
+        public Action<CancellationToken> Method { get; set; }
+        /// <summary>
+        /// Сигнал для токена
+        /// </summary>
+        CancellationTokenSource cancelTokenSource;
+        /// <summary>
+        /// Токен
+        /// </summary>
+        CancellationToken token;
+        public Me()
+        {
+            Hobbies = new List<Hobby>()
+            {
+                new Hobby() { Name = "Рисовать"},
+                new Hobby() { Name = "Кинодраматургия" },
+                new Hobby() { Name = "Решаю задачи на CodeWars" }
+            };
+
+            PersonalQualities = new List<PersonalQuality>
+            {
+                new PersonalQuality { Name = "Вежливость"},
+                new PersonalQuality { Name = "Готовность самостоятельно принимать решения"},
+                new PersonalQuality { Name = "Стремление к профессиональному развитию"},
+                new PersonalQuality { Name = "Инициативность"}
+            };
+
+            cancelTokenSource = new CancellationTokenSource();
+            token = cancelTokenSource.Token;
+
+            Method = WorkingVeryHard;
+            Work = new Task(() => Method(token));
+        }
+        /// <summary>
+        /// Мой способ работы по умолчанию
+        /// </summary>
+        /// <param name="token">Токен для прекращения работы</param>
+        private void WorkingVeryHard(CancellationToken token)
+        {
+            while (true)
+            {
+                Console.WriteLine("Working very hard...");
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
+            }
+        }
+        /// <summary>
+        /// Метод заставляет меня работать
+        /// </summary>
+        public void StartWork()
+        {
+            if (Work.IsCompleted)
+            {
+                cancelTokenSource = new CancellationTokenSource();
+                token = cancelTokenSource.Token;
+
+                Work = new Task(() => this.Method(token));
+            }
+            if (Work.Status.ToString() != "Running")
+                Work.Start();
+        }
+        /// <summary>
+        /// Метод останавливает мою работу
+        /// </summary>
+        public void StopWork()
+        {
+            cancelTokenSource.Cancel();
+        }
+    }
+
+    /// <summary>
+    /// Хобби
+    /// </summary>
+    class Hobby
+    {
+        /// <summary>
+        /// Название хобби
+        /// </summary>
+        public string Name { get; set; }
+    }
+    /// <summary>
+    /// Личное качество
+    /// </summary>
+    class PersonalQuality
+    {
+        /// <summary>
+        /// Название личного качетсва
+        /// </summary>
+        public string Name { get; set; }
+    }
+}
